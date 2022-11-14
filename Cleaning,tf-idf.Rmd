@@ -1,0 +1,127 @@
+---
+title: "Topic Modeling"
+author: "Group 10"
+date: "2022-11-12"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(dplyr)
+library(tidyr)
+library(DescTools)
+library(tokenizers)
+```
+
+##Import Data
+
+```{r}
+imdb <- read_csv ("/Users/priamvyas/Desktop/MSSP/615 Data Science in R/MidTerm Project/Topic Modelling/IMDB Dataset.csv", 
+                    col_names = TRUE,
+                    show_col_types = FALSE)
+##remove sentiment column since we don't use it.
+imdb <- imdb %>% select(-sentiment)
+
+##remove duplicates of review
+imdb <- unique(imdb)
+
+##sample down for 100 reviews.
+set.seed(456)
+review_index <- 1:dim(imdb)[1]
+text_df <- cbind(review_index,imdb)
+text_df <- text_df %>% slice_sample(n = 100, replace = FALSE)
+rm(review_index)
+
+```
+
+## Cleaning: Tokenizing, Removing stopwords,tf-idf
+
+##The imdb dataset has a lot of stopwords and meaningless words. #We will remove stopwords and words unncessary for guessing movie genre.
+
+```{r}
+library(stringr)
+library(tidytext)
+## tokenizing, count the number of words within each review.
+token <- text_df %>%
+  unnest_tokens(word, review) %>%
+  count(review_index, word, sort=TRUE) %>%
+  rename(count=n)
+
+##There's a lot of stop words. Let's remove them.
+  
+## create a stop word vector
+stop <-  unlist(stop_words[,1])
+## drop the attribute
+stop <- StripAttr(stop)
+##restore tokens dataset to check their
+check <-  token
+## check words agains stop word lists
+remove <- check$word %in% stop
+## to make it easier to see create a data frame
+d <- cbind(token,remove)
+## create an index of words(not stopwords)
+f <- which(d$remove == FALSE)
+##clean tokens that has no stopwords
+clean_token <- d %>% slice(f) %>% select(-remove)
+
+##Let's subset the data frame that has only meaningful words
+
+##vector that has meaningless words
+strings <- c("br","movie","film", "scene", "character","story","bit","lot","bad","act","hard","awful","good","plot","people", "cinema","audience","coburn","cast","heston","jimmy", "fred","worst","sir","tom","time")
+
+##detect numbers of rows that has meaningless words
+meaningless <- str_detect(clean_token$word, paste(strings, collapse = "|"))
+##detect numbers of meaningful rows
+has_meaning <- which(meaningless==F)
+##subset: tokens without meaningless 
+clean_token <- clean_token %>% slice(has_meaning)
+
+##remove redundant datas and values
+rm(d,check,f,meaningless,has_meaning,strings,stop,remove,token)
+```
+
+##Let's look tf-idf to see what is the most important words in the whole reviews. ##tf-idf
+
+```{r}
+review_tf_idf <- clean_token %>%
+  bind_tf_idf(review_index, word, count)
+
+##Look at terms with high tf-idf in reviews.
+review_tf_idf<- review_tf_idf %>%
+  arrange(desc(tf_idf))
+##It looks like the high tf-idf's tf are mostly 1.
+##For words that tf=1, it means those words are only contained on one review, and the tf-idf algorithm will think those are very important words.
+
+##So, remove all tf != 1. 
+tf_1 <- which(review_tf_idf$tf==1)
+tf_idf_high <- review_tf_idf %>% slice(tf_1) %>% select(-count,-tf,-idf) #remove column 'count','tf','idf'.
+
+rm(review_tf_idf)
+
+##review_index numbers in tf_idf_high
+index <- unique(tf_idf_high$review_index)
+
+##tf-idf plot
+##Let's make the plots with only 6 review_index.
+tf_idf_high %>% 
+  filter(review_index %in% c(25207,5044,5140,28289,25247)) %>%
+  arrange(desc(tf_idf)) %>%
+  group_by(review_index) %>%
+  distinct(word,review_index, .keep_all = TRUE) %>%
+  slice_max(tf_idf, n = 15, with_ties = FALSE) %>% 
+  ungroup() %>%
+  mutate(word = factor(word, levels = rev(unique(word)))) %>%
+  ggplot(aes(tf_idf, word, fill = review_index)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~review_index, ncol = 3, scales = "free") +
+  labs(title = "Highest tf-idf words in whole reviews",
+       caption = "IMDB Dataset",
+       x = "tf-idf", y = NULL)
+```
+
+-   On each 6 plot, we can see top 15 words with high tf-idf.
+-   Among them, we can verify some meaningful words for checking their genres.
+-   For example, in review'25247', the words 'censorship','erotic','sexuality' imply that the review is about romance movie.

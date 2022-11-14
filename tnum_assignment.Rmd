@@ -1,0 +1,214 @@
+---
+title: "tnun_assignment_2"
+author: "Priam Vyas"
+date: "2022-11-11"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Part 1
+```{r}
+library(tidyverse)
+library(magrittr)
+library(tnum)
+library(tibble)
+tnum.loadLibs()
+tnum.authorize(ip = "mssp.truenum.com:8080", creds = "priam@bu.edu:marlin")
+```
+
+
+```{r}
+text_ch1 <- tnum.query("subj:Time_Machine:Chapter:1:*")
+text_ch2 <- tnum.query("subj:Time_Machine:Chapter:2:*")
+text_ch4 <- tnum.query("subj:Time_Machine:Chapter:4:*")
+text_ch5 <- tnum.query("subj:Time_Machine:Chapter:5:*")
+text_ch6 <- tnum.query("subj:Time_Machine:Chapter:6:*")
+text_ch7 <- tnum.query("subj:Time_Machine:Chapter:7:*")
+text_ch8 <- tnum.query("subj:Time_Machine:Chapter:8:*")
+text_ch10 <- tnum.query("subj:Time_Machine:Chapter:10:*")
+text_ch12 <- tnum.query("subj:Time_Machine:Chapter:12:*")
+```
+
+```{r}
+#get all sentences with the stringval
+ch8_weena <- tnum.query("subj:Time_Machine:Chapter:8:* and stringval:Weena")
+ch10_weena <- tnum.query("subj:Time_Machine:Chapter:10:* and stringval:Weena")
+ch11_weena <- tnum.query("subj:Time_Machine:Chapter:11:* and stringval:Weena")
+ch12_weena <- tnum.query("subj:Time_Machine:Chapter:12:* and stringval:Weena")
+all_weena <- tnum.query("subj:Time_Machine:* and stringval:Weena")
+
+#find first appearance of Weena
+ch8_water <- tnum.query("subj:Time_Machine:Chapter:8:* and stringval:Thames")
+
+#meeting Weena
+ch8_sentence4 <- tnum.query("subj:Time_Machine:Chapter:8:Sentence:4*")
+```
+
+
+```{r}
+tnum.getAllProperties()
+tmp <- tnum.query("prop:population")
+tmp2 <- tnum.query("prop:number")
+colnames(tmp)
+tmp$si_value
+```
+
+
+## Part 2
+
+```{r}
+tnum.getAllProperties()
+median_household_income <- tnum.query("prop:median_household_income")
+```
+```{r}
+t1 <- tnum.query("subj:Maine* and prop:median_household_income and numval: >70000")
+t1_tag <- mapply(FUN = tnum.addTag, guid = t1$id, 
+                 tag = "median_income:high", 
+                 text = "the households in Maine")
+tnum.getTagsOfTn(t1[1,]$id)
+kable(t1)
+```
+```{r}
+t2 <- tnum.query("subj:Connecticut* and prop:median_household_income and numval: >70000")
+t2_tag <- mapply(FUN = tnum.addTag, guid = t2$id, 
+                 tag = "median_income:high", 
+                 text = "the households in Connecticut")
+tnum.getTagsOfTn(t2[1,]$id)
+kable(t2)
+```
+
+
+```{r}
+t3 <- tnum.query("subj:Vermont* and prop:median_household_income and numval: >70000")
+t3_tag <- mapply(FUN = tnum.addTag, guid = t3$id, 
+                 tag = "median_income:high", 
+                 text = "the households in Vermont")
+tnum.getTagsOfTn(t3[1,]$id)
+kable(t3)
+```
+
+
+```{r}
+t4 <- tnum.query("subj:New_Hampshire* and prop:median_household_income and numval: >70000")
+t4_tag <- mapply(FUN = tnum.addTag, guid = t4$id, 
+                 tag = "median_income:high", 
+                 text = "the households in New_Hampshire")
+tnum.getTagsOfTn(t4[1,]$id)
+kable(t4)
+```
+
+
+```{r}
+t5 <- tnum.query("subj:Massachusetts* and prop:median_household_income and numval: >70000")
+t5_tag <- mapply(FUN = tnum.addTag, guid = t5$id, 
+                 tag = "median_income:high", 
+                 text = "the households in Massachusetts")
+tnum.getTagsOfTn(t5[1,]$id)
+kable(t5)
+```
+
+```{r}
+tnum.getAllProperties()
+population <- tnum.query("prop:population")
+```
+
+```{r}
+x1 <- tnum.query("subj:Connecticut* and prop:households and numval: >1000")
+x1_tag <- mapply(FUN = tnum.addTag, guid = x1$id, 
+                 tag = "households:large", 
+                 text = "the households in Connecticut")
+tnum.getTagsOfTn(x1[1,]$id)
+kable(x1)
+```
+
+```{r}
+x2 <- tnum.query("subj:Maine* and prop:households and numval: >1000")
+x2_tag <- mapply(FUN = tnum.addTag, guid = x2$id, 
+                 tag = "households:large", 
+                 text = "the households in Maine")
+tnum.getTagsOfTn(x2[1,]$id)
+kable(x2)
+```
+
+```{r}
+x3 <- tnum.query("subj:Massachusetts* and prop:households and numval: >1000")
+x3_tag <- mapply(FUN = tnum.addTag, guid = x3$id, 
+                 tag = "households:large", 
+                 text = "the households in Massachusetts")
+tnum.getTagsOfTn(x3[1,]$id)
+kable(x3)
+```
+
+```{r}
+x4 <- tnum.query("subj:New_Hampshire* and prop:households and numval: >1000")
+x4_tag <- mapply(FUN = tnum.addTag, guid = x4$id, 
+                 tag = "households:large", 
+                 text = "the households in New Hampshire")
+tnum.getTagsOfTn(x4[1,]$id)
+kable(x4)
+```
+
+```{r}
+x5 <- tnum.query("subj:Rhode_Island* and prop:households and numval: >1000")
+x5_tag <- mapply(FUN = tnum.addTag, guid = x5$id, 
+                 tag = "households:large", 
+                 text = "the households in Rhode Island")
+tnum.getTagsOfTn(x5[1,]$id)
+kable(x5)
+```
+
+
+```{r}
+p1 <- tnum.postStatement(
+  stmt = "the highest median income of Maine is Cumberland at 73072", 
+  notes = "Our first truenumber")
+
+p2 <- tnum.postStatement(
+  stmt = "the highest median income of Connecticut is Fairfield at 95645", 
+  notes = "Our second truenumber")
+
+p3 <- tnum.postStatement(
+  stmt = "the highest median income of Vermont is Chittenden at 73647", 
+  notes = "Our third truenumber")
+
+p4 <- tnum.postStatement(
+  stmt = "the highest median income of Hillsborough is Fairfield at 81460", 
+  notes = "Our fourth truenumber")
+
+p5 <- tnum.postStatement(
+  stmt = "the highest median income of Massachusetts is Nantucket at 107717",
+  notes = "Our fifth truenumber")
+```
+
+```{r}
+r1 <- tnum.postStatement(
+  stmt = "the highest households of Connecticut at Hartford County is 350408", 
+  notes = "Our sixth truenumber")
+
+r2 <- tnum.postStatement(
+  stmt = "the highest households of Maine at Cumberland County is 120644", 
+  notes = "Our seventh truenumber")
+
+r3 <- tnum.postStatement(
+  stmt = "the highest households of Massachusetts at Middlesex County is 604384", 
+  notes = "Our eighth truenumber")
+
+r4 <- tnum.postStatement(
+  stmt = "the highest households of New Hampshire at Hillsborough County is 161086", 
+  notes = "Our ninth truenumber")
+
+r5 <- tnum.postStatement(
+  stmt = "the highest households of Rhode Island at Providence County is 237971",
+  notes = "Our tenth truenumber")
+```
+
+```{r}
+df <- tnum.jsonArray(list(p1,p2,p3,p4,p5,r1,r2,r3,r4,r5))
+kable(df)
+
+```
